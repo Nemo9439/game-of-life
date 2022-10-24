@@ -3,6 +3,9 @@ import {
 	OrbitControls
 } from 'https://unpkg.com/three@0.139.2/examples/jsm/controls/OrbitControls.js';
 
+const ROW_SIZE = 30;
+const SUNLIGHT_COLOR = '#fdfbd3'
+const MAX_HEIGHT = ROW_SIZE / 4;
 
 function getRandomHeight() {
 	const isLive = Math.floor(Math.random() * 3) === 1
@@ -10,7 +13,7 @@ function getRandomHeight() {
 		return 0;
 	}
 
-	return Math.floor(Math.random() * 10) + 1;
+	return Math.floor(Math.random() * MAX_HEIGHT) + 1;
 
 }
 
@@ -31,9 +34,16 @@ function generateGrid(rowSize) {
 
 export function main() {
 	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-	camera.position.set(0, 10, 10);
-	camera.lookAt(0, 0, 0);
+
+	const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+	scene.add(ambientLight);
+	const light = new THREE.PointLight(SUNLIGHT_COLOR, 1, 500, 2);
+	light.position.set(ROW_SIZE, ROW_SIZE, ROW_SIZE);
+	scene.add(light);
+
+	const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+	camera.position.set(ROW_SIZE * 2, ROW_SIZE * 1.5, ROW_SIZE * 2);
+	camera.lookAt(ROW_SIZE / 2, 0, ROW_SIZE / 2);
 
 
 	const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -43,24 +53,23 @@ export function main() {
 	const controls = new OrbitControls(camera, renderer.domElement);
 	controls.update();
 
-	const cells = generateGrid(30);
-	console.log({cells});
-	const cubes = [];
+	const cells = generateGrid(ROW_SIZE);
+	const cubes = new Map();
 
-	console.log('init');
 
-	for (let z = 0; z < cells.length; z++) {
+	for (let y = 0; y < cells.length; y++) {
 		for (let x = 0; x < cells[0].length; x++) {
-			console.log('init');
 
 			const cell = cells[z][x];
 			console.log(cell);
-			const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
+			// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
+			const material = new THREE.MeshPhongMaterial({ color: '#8AC' });
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 			const cube = new THREE.Mesh(geometry, material);
-			cube.position.set(x, (cell.height / 2), z);
+			cube.position.set(x, (cell.height / 2), y);
 			scene.add(cube);
-			cubes.push(cube);
+			const cubeKey = generateCubeKey(x, y);
+			cubes.set(cubeKey,cube);
 		}
 	}
 
@@ -78,4 +87,73 @@ export function main() {
 		renderer.render(scene, camera);
 	}
 	animate();
+}
+
+function generateCubeKey(x, y) {
+	return `x:${x}-y:${y}`;
+}
+
+// game of life logic 
+function calculateNextGrid(oldGrid) {
+	const grid = [];
+	for (let i = 0; i < rowSize; i++) {
+		const row = [];
+		for (let j = 0; j < rowSize; j++) {
+			const height = calculateNewHeight(oldGrid,i,j);
+			row[j] = { height };
+		}
+		grid[i] = row;
+	}
+
+	return grid;
+}
+
+function calculateNewHeight(grid, row, col) {
+	const numNeighbors = countNeighbors(grid, row, col);
+	const cellObject = grid[row][col];
+	if (cellObjec.height >= 1) {
+		if (numNeighbors < 2) {
+			return cellObject.height - 1;
+		}
+		if (numNeighbors == 2 || numNeighbors == 3) {
+			return cellObject.height + 1;
+		}
+		if (numNeighbors > 3) {
+			return cellObject.height - 1;
+		}
+	}
+	if (cellObjec.height === 0) {
+		if (numNeighbors == 3) {
+			return 1;
+		}
+	}
+}
+
+function countNeighbors(grid, row, col) {
+	const count = 0;
+	if (grid?.[row - 1]?.[col].height >= 1) {
+		count++;
+	}
+	if (grid?.[row - 1]?.[col - 1].height >= 1) {
+		count++;
+	}
+	if (grid?.[row - 1]?.[col + 1].height >= 1) {
+		count++;
+	}
+	if (grid?.[row]?.[col - 1].height >= 1) {
+		count++;
+	}
+	if (grid?.[row]?.[col + 1].height >= 1) {
+		count++;
+	}
+	if (grid?.[row + 1]?.[col].height >= 1) {
+		count++;
+	}
+	if (grid?.[row + 1]?.[col - 1].height >= 1) {
+		count++;
+	}
+	if (grid?.[row + 1]?.[col + 1].height >= 1) {
+		count++;
+	}
+	return count;
 }
