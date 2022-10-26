@@ -1,0 +1,20 @@
+{
+  "name": "game-of-life",
+  "version": "1.0.0",
+  "description": "Everything you need to start creating ThreeJS apps, with the added benefit of being able to deploy anywhere.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server . -p 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nemo9439/game-of-life.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nemo9439/game-of-life/issues"
+  },
+  "homepage": "https://github.com/Nemo9439/game-of-life#readme"
+}
