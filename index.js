@@ -8,12 +8,12 @@ const SUNLIGHT_COLOR = '#fdfbd3'
 const MAX_HEIGHT = ROW_SIZE / 4;
 
 function getRandomHeight() {
-	const isLive = Math.floor(Math.random() * 10) === 1
+	const isLive = Math.floor(Math.random() * 8) === 1
 	if (!isLive) {
 		return 0;
 	}
 
-	return Math.floor(Math.random() * MAX_HEIGHT) + 1;
+	return 1;
 
 }
 
@@ -61,7 +61,6 @@ export function main() {
 		for (let x = 0; x < cells[0].length; x++) {
 
 			const cell = cells[y][x];
-			// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
 			const material = new THREE.MeshPhongMaterial({ color: '#8AC' });
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 			const cube = new THREE.Mesh(geometry, material);
@@ -82,7 +81,7 @@ export function main() {
 	setInterval(() => {
 		cells = calculateNextGrid(cells);
 		updateCubes(cells, cubes);
-	}, 1000)
+	}, 200)
 }
 
 function generateCubeKey(x, y) {
@@ -121,24 +120,24 @@ function calculateNewHeight(grid, row, col) {
 	const numNeighbors = countNeighbors(grid, row, col);
 	const cellObject = grid[row][col];
 
-	if(cellObject.height > 10) {
-		return 0;
-	}
+		if(cellObject.height > 10) {
+			return 1;
+		}
 
 	if (cellObject.height >= 1) {
 		if (numNeighbors < 2) {
-			return cellObject.height - 1;
+			return 0;
 		}
 		if (numNeighbors == 2 || numNeighbors == 3) {
 			return cellObject.height + 1;
 		}
 		if (numNeighbors > 3) {
-			return cellObject.height - 1;
+			return 0;
 		}
 	}
 
 	if (cellObject.height === 0) {
-		if (numNeighbors == 3) {
+		if (numNeighbors === 3) {
 			return 1;
 		}
 	}
@@ -178,4 +177,5 @@ function countNeighbors(grid, row, col) {
 
 	return count;
 }
+
 
