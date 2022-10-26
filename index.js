@@ -8,7 +8,7 @@ const SUNLIGHT_COLOR = '#fdfbd3'
 const MAX_HEIGHT = ROW_SIZE / 4;
 
 function getRandomHeight() {
-	const isLive = Math.floor(Math.random() * 3) === 1
+	const isLive = Math.floor(Math.random() * 10) === 1
 	if (!isLive) {
 		return 0;
 	}
@@ -53,15 +53,14 @@ export function main() {
 	const controls = new OrbitControls(camera, renderer.domElement);
 	controls.update();
 
-	const cells = generateGrid(ROW_SIZE);
+	let cells = generateGrid(ROW_SIZE);
 	const cubes = new Map();
 
 
 	for (let y = 0; y < cells.length; y++) {
 		for (let x = 0; x < cells[0].length; x++) {
 
-			const cell = cells[z][x];
-			console.log(cell);
+			const cell = cells[y][x];
 			// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
 			const material = new THREE.MeshPhongMaterial({ color: '#8AC' });
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
@@ -69,7 +68,7 @@ export function main() {
 			cube.position.set(x, (cell.height / 2), y);
 			scene.add(cube);
 			const cubeKey = generateCubeKey(x, y);
-			cubes.set(cubeKey,cube);
+			cubes.set(cubeKey, cube);
 		}
 	}
 
@@ -87,19 +86,36 @@ export function main() {
 		renderer.render(scene, camera);
 	}
 	animate();
+	setInterval(() => {
+		cells = calculateNextGrid(cells);
+		updateCubes(cells, cubes);
+	}, 1000)
 }
 
 function generateCubeKey(x, y) {
 	return `x:${x}-y:${y}`;
 }
 
+function updateCubes(grid, cubes) {
+	for (let y = 0; y < grid.length; y++) {
+		for (let x = 0; x < grid[0].length; x++) {
+			const cell = grid[y][x];
+			const cube = cubes.get(generateCubeKey(x, y));
+			cube.geometry.dispose();
+			cube.geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
+			cube.position.set(x, (cell.height / 2), y);
+
+		}
+	}
+}
+
 // game of life logic 
 function calculateNextGrid(oldGrid) {
 	const grid = [];
-	for (let i = 0; i < rowSize; i++) {
+	for (let i = 0; i < oldGrid.length; i++) {
 		const row = [];
-		for (let j = 0; j < rowSize; j++) {
-			const height = calculateNewHeight(oldGrid,i,j);
+		for (let j = 0; j < oldGrid[0].length; j++) {
+			const height = calculateNewHeight(oldGrid, i, j);
 			row[j] = { height };
 		}
 		grid[i] = row;
@@ -111,7 +127,12 @@ function calculateNextGrid(oldGrid) {
 function calculateNewHeight(grid, row, col) {
 	const numNeighbors = countNeighbors(grid, row, col);
 	const cellObject = grid[row][col];
-	if (cellObjec.height >= 1) {
+
+	if(cellObject.height > 10) {
+		return 0;
+	}
+
+	if (cellObject.height >= 1) {
 		if (numNeighbors < 2) {
 			return cellObject.height - 1;
 		}
@@ -122,38 +143,46 @@ function calculateNewHeight(grid, row, col) {
 			return cellObject.height - 1;
 		}
 	}
-	if (cellObjec.height === 0) {
+
+	if (cellObject.height === 0) {
 		if (numNeighbors == 3) {
 			return 1;
 		}
 	}
+
+	return cellObject.height;
 }
 
 function countNeighbors(grid, row, col) {
-	const count = 0;
-	if (grid?.[row - 1]?.[col].height >= 1) {
+	let count = 0;
+	
+	if (grid?.[row - 1]?.[col - 1]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row - 1]?.[col - 1].height >= 1) {
+	if (grid?.[row - 1]?.[col]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row - 1]?.[col + 1].height >= 1) {
+	if (grid?.[row - 1]?.[col + 1]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row]?.[col - 1].height >= 1) {
+
+	if (grid?.[row]?.[col - 1]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row]?.[col + 1].height >= 1) {
+	if (grid?.[row]?.[col + 1]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row + 1]?.[col].height >= 1) {
+
+	if (grid?.[row + 1]?.[col - 1]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row + 1]?.[col - 1].height >= 1) {
+	if (grid?.[row + 1]?.[col]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row + 1]?.[col + 1].height >= 1) {
+	if (grid?.[row + 1]?.[col + 1]?.height >= 1) {
 		count++;
 	}
+	
 	return count;
 }
+
