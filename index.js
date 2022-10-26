@@ -76,13 +76,6 @@ export function main() {
 
 	function animate() {
 		requestAnimationFrame(animate);
-
-		// cubes.map((cube)=> {
-		// 	cube.rotation.y += 0.01;
-
-		// })
-
-		// controls.update();
 		renderer.render(scene, camera);
 	}
 	animate();
@@ -182,7 +175,7 @@ function countNeighbors(grid, row, col) {
 	if (grid?.[row + 1]?.[col + 1]?.height >= 1) {
 		count++;
 	}
-	
+
 	return count;
 }
 
