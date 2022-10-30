@@ -5,7 +5,7 @@ import {
 
 const ROW_SIZE = 30;
 const SUNLIGHT_COLOR = '#fdfbd3'
-const COLORS = ['azure', 'orange', 'pink','tomato', 'whitesmoke', 'salmon', 'skyblue', 'orangered', ]
+const COLORS = ['azure', 'orange', 'pink', 'tomato', 'whitesmoke', 'salmon', 'skyblue', 'orangered']
 
 function buildSelectNextColor() {
 	let counter = -1;
@@ -87,7 +87,7 @@ export function main() {
 	camera.position.set(0, ROW_SIZE * 2, 0);
 
 
-	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
+	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 	changeSelectedColor();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	document.body.appendChild(renderer.domElement);
@@ -125,8 +125,9 @@ export function main() {
 
 	animate();
 	setInterval(() => {
-		cells = calculateNextGrid(cells);
-		updateCubes(cells, cubes);
+		const newCells = calculateNextGrid(cells);
+		updateCubes(cells, newCells, cubes);
+		cells = newCells;
 	}, 100)
 
 	function createLighting() {
@@ -159,9 +160,12 @@ export function main() {
 		object.material.color.convertSRGBToLinear();
 
 		const { position } = object;
-		const selectedCell = cells[position.z][position.x];
+		const y = position.z;
+		const x = position.x;
+		const selectedCell = cells[y][x];
 		selectedCell.height = selectedCell.height > 0 ? 0 : 1;
-		updateCube(cells, position.z, position.x, cubes);
+		const cube = cubes.get(generateCubeKey(x, y));
+		updateCube(selectedCell, cube);
 	}
 
 	window.addEventListener('click', onMouseClick, false);
@@ -172,10 +176,16 @@ function generateCubeKey(x, y) {
 	return `x:${x}-y:${y}`;
 }
 
-function updateCubes(grid, cubes) {
+function updateCubes(oldGrid, grid, cubes) {
 	for (let y = 0; y < grid.length; y++) {
 		for (let x = 0; x < grid[0].length; x++) {
-			updateCube(grid, y, x, cubes);
+			const oldCell = oldGrid[y][x];
+			const cell = grid[y][x];
+			if (oldCell.height === cell.height) {
+				continue;
+			}
+			const cube = cubes.get(generateCubeKey(x, y));
+			updateCube(cell, cube);
 
 		}
 	}
@@ -183,12 +193,10 @@ function updateCubes(grid, cubes) {
 
 
 
-function updateCube(grid, y, x, cubes) {
-	const cell = grid[y][x];
-	const cube = cubes.get(generateCubeKey(x, y));
+function updateCube(cell, cube) {
 	cube.geometry.dispose();
 	cube.geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
-	cube.position.set(x, (cell.height / 2), y);
+	cube.position.y = cell.height / 2;
 }
 
 // game of life logic 
