@@ -48,6 +48,7 @@ export function main() {
 		selectedColor = getNextColor();
 		scene.background = new THREE.Color(selectedColor);
 	}
+	THREE.ColorManagement.legacyMode = false;
 
 	const raycaster = new THREE.Raycaster();
 	const mouse = new THREE.Vector2();
