@@ -55,6 +55,7 @@ export function main() {
 		};
 		let btnTopView = document.getElementById("topView");
 		btnTopView.onclick = function () {
+			scene.rotation.x = 0;
 			controls.reset();
 		};
 		let btnRotate = document.getElementById("rotate");
