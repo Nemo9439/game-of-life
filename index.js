@@ -131,7 +131,7 @@ export function main() {
 		const newCells = calculateNextGrid(cells);
 		updateCubes(cells, newCells, cubes);
 		cells = newCells;
-	}, 100)
+	}, 150)
 
 	function createLighting() {
 		const ambientLight = new THREE.AmbientLight(SUNLIGHT_COLOR, 0.5); // soft white light
