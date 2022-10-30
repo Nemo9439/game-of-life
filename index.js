@@ -44,26 +44,48 @@ function generateGrid(rowSize) {
 
 
 export function main() {
+	let isRotating = false;
 	function changeSelectedColor() {
 		selectedColor = getNextColor();
-		scene.background = new THREE.Color(selectedColor);
+	}
+	function createControlPanel() {
+		let btnReset = document.getElementById("reset");
+		btnReset.onclick = function () {
+			controls.reset();
+			isRotating = false;
+			scene.rotation.y = 0;
+			scene.rotation.x = 0;
+			scene.rotation.z = 0;
+		};
+		let btnTopView = document.getElementById("topView");
+		btnTopView.onclick = function () {
+			controls.reset();
+		};
+		let btnRotate = document.getElementById("rotate");
+		btnRotate.onclick = function () {
+			isRotating = !isRotating;
+			setRotationAnimation()
+		};
+	}
+	function setRotationAnimation() {
+		if(!isRotating){
+			return;
+		}
+		scene.rotation.y += 0.005;
 	}
 	THREE.ColorManagement.legacyMode = false;
 
 	const raycaster = new THREE.Raycaster();
 	const mouse = new THREE.Vector2();
 	const scene = new THREE.Scene();
+	scene.background = new THREE.Color('black');
+	const group = new THREE.Group();
 	let selectedColor;
 
-	const ambientLight = new THREE.AmbientLight(SUNLIGHT_COLOR, 0.5); // soft white light
-	scene.add(ambientLight);
-	const light = new THREE.PointLight(SUNLIGHT_COLOR, 0.9, 1000);
-	light.position.set(ROW_SIZE, ROW_SIZE, ROW_SIZE);
-	scene.add(light);
+	createLighting();
 
 	const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(ROW_SIZE * 2, ROW_SIZE * 1.5, ROW_SIZE * 2);
-	camera.lookAt(ROW_SIZE / 2, 0, ROW_SIZE / 2);
+	camera.position.set(0, ROW_SIZE * 2, 0);
 
 
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -72,8 +94,7 @@ export function main() {
 	document.body.appendChild(renderer.domElement);
 
 	const controls = new OrbitControls(camera, renderer.domElement);
-	controls.update();
-
+	createControlPanel();
 	let cells = generateGrid(ROW_SIZE);
 	const cubes = new Map();
 
@@ -86,18 +107,21 @@ export function main() {
 			const material = new THREE.MeshPhongMaterial({ color: 'yellow' });
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 			const cube = new THREE.Mesh(geometry, material);
-			cube.position.set(x, (cell.height / 2), y);
-			scene.add(cube);
+			cube.position.set(x, (cell.height / 2),  y);
+			group.add(cube);
 			const cubeKey = generateCubeKey(x, y);
 			cubes.set(cubeKey, cube);
 		}
 	}
+
+	scene.add(group);
 
 
 
 	function animate() {
 		requestAnimationFrame(animate);
 		renderer.render(scene, camera);
+		setRotationAnimation();
 	}
 
 	animate();
@@ -105,7 +129,19 @@ export function main() {
 		const newCells = calculateNextGrid(cells);
 		updateCubes(cells, newCells, cubes);
 		cells = newCells;
-	}, 500)
+	}, 100)
+
+	function createLighting() {
+		const ambientLight = new THREE.AmbientLight(SUNLIGHT_COLOR, 0.5); // soft white light
+		scene.add(ambientLight);
+		group.position.set(-(ROW_SIZE / 2), 0 , -(ROW_SIZE / 2) );
+		const light = new THREE.PointLight(SUNLIGHT_COLOR, 0.9, 1000);
+		light.position.set(-(ROW_SIZE / 2), ROW_SIZE, -(ROW_SIZE / 2));
+		scene.add(light);
+		const light2 = new THREE.PointLight(SUNLIGHT_COLOR, 0.9, 1000);
+		light2.position.set((ROW_SIZE / 2), ROW_SIZE * 2, (ROW_SIZE / 2));
+		scene.add(light2);
+	}
 
 	function onMouseClick(event) {
 		changeSelectedColor();
@@ -116,7 +152,7 @@ export function main() {
 		mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
 		raycaster.setFromCamera(mouse, camera);
-		const intersects = raycaster.intersectObjects(scene.children, false);
+		const intersects = raycaster.intersectObjects(group.children, false);
 		const object = intersects[0]?.object;
 		if (!object) {
 			return;
