@@ -6,4 +6,6 @@ Play the Game of Life online, a single player game invented in 1970 by Cambridge
 ![The included sample scene](/Documentation/game-of-life.png)
 
 ## How to run locally
+```console
 $ npm run start
+```
