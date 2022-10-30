@@ -105,8 +105,10 @@ export function main() {
 
 			const cell = cells[y][x];
 			const material = new THREE.MeshPhongMaterial({ color: 'yellow' });
+			
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 			const cube = new THREE.Mesh(geometry, material);
+			updateCubeColor(cube, cell.height);
 			cube.position.set(x, (cell.height / 2),  y);
 			group.add(cube);
 			const cubeKey = generateCubeKey(x, y);
@@ -158,7 +160,6 @@ export function main() {
 			return;
 		}
 		object.material.color.set(selectedColor);
-		object.material.color.convertSRGBToLinear();
 
 		const { position } = object;
 		const y = position.z;
@@ -198,6 +199,14 @@ function updateCube(cell, cube) {
 	cube.geometry.dispose();
 	cube.geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 	cube.position.y = cell.height / 2;
+	
+	updateCubeColor(cube, cell.height);
+}
+
+function updateCubeColor(cube, height) {
+	const currentHSL = cube.material.color.getHSL({});
+	const lValue = ((height / 25) || 0.2) + 0.1;
+	cube.material.color.setHSL(currentHSL.h, currentHSL.s, lValue);
 }
 
 // game of life logic 
