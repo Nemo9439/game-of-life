@@ -101,7 +101,7 @@ export function main() {
 	createLighting();
 
 	const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(0, ROW_SIZE * 2, 0);
+	camera.position.set(0, ROW_SIZE * 3, 0);
 
 
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
