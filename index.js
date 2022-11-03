@@ -45,6 +45,11 @@ function generateGrid(rowSize) {
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
+let muted = true;
+let backgroundMusicPlaying = true;
+const backgroundMusic = new THREE.Audio(listener);
+initBackgroundSound();
+
 
 
 export function main() {
@@ -54,22 +59,39 @@ export function main() {
 	}
 	function createControlPanel() {
 		let btnReset = document.getElementById("reset");
-		btnReset.onclick = function () {
+		btnReset.onclick = function (e) {
+			e.stopPropagation();
 			reset();
 		};
 		let btnTopView = document.getElementById("topView");
-		btnTopView.onclick = function () {
+		btnTopView.onclick = function (e) {
+			e.stopPropagation();
 			scene.rotation.x = 0;
 			controls.reset();
 		};
 		let btnRotate = document.getElementById("rotate");
-		btnRotate.onclick = function () {
+		btnRotate.onclick = function (e) {
+			e.stopPropagation();
 			rotate();
 
 		};
 		let btnRandomize = document.getElementById("randomize");
-		btnRandomize.onclick = function () {
+		btnRandomize.onclick = function (e) {
+			e.stopPropagation();
 			randomizeNewCells();
+		};
+		let btnBkgMusic = document.getElementById("play");
+		btnBkgMusic.onclick = function (e) {
+			e.stopPropagation();
+			playBackgroundAudio();
+			backgroundMusicPlaying ? this.classList.add('paused') : this.classList.remove('paused')
+		};
+		let btnMute = document.getElementById("mute");
+		btnMute.onclick = function (e) {
+			e.stopPropagation();
+			mute();
+			muted ? this.classList.add('muted') : this.classList.remove('muted')
+			btnBkgMusic.disabled = muted;
 		};
 	}
 	function setRotationAnimation() {
@@ -179,7 +201,6 @@ export function main() {
 
 	function onMouseClick(event) {
 		changeSelectedColor();
-		playBackgroundAudio();
 		playWhipSound();
 	}
 
@@ -308,22 +329,31 @@ function countNeighbors(grid, row, col) {
 	return count;
 }
 
-let isBackgroundMusicPlaying = false;
-const playBackgroundAudio = () => {
-	if (isBackgroundMusicPlaying) {
-		return;
-	}
-	isBackgroundMusicPlaying = true;
-	const sound = new THREE.Audio(listener);
+const mute = () => {
+	muted = !muted;
+	!muted && backgroundMusicPlaying ? backgroundMusic.play() : backgroundMusic.pause();
+}
+
+function initBackgroundSound() {
 	audioLoader.load('sounds/tron.mp3', function (buffer) {
-		sound.setBuffer(buffer);
-		sound.setLoop(true);
-		sound.play();
+		backgroundMusic.setBuffer(buffer);
+		backgroundMusic.setLoop(true);
 	});
 }
 
+const playBackgroundAudio = () => {
+	if(muted){
+		return;
+	}
+	backgroundMusicPlaying = !backgroundMusicPlaying;
+	backgroundMusicPlaying ? backgroundMusic.play() : backgroundMusic.pause();
+
+}
 
 const playTapSound = () => {
+	if(muted){
+		return;
+	}
 	const sound = new THREE.Audio(listener);
 	audioLoader.load('sounds/tap.wav', function (buffer) {
 		sound.setBuffer(buffer);
@@ -333,6 +363,9 @@ const playTapSound = () => {
 }
 
 const playWhipSound = () => {
+	if(muted){
+		return;
+	}
 	const sound = new THREE.Audio(listener);
 	audioLoader.load('sounds/whip.wav', function (buffer) {
 		sound.setBuffer(buffer);
@@ -340,4 +373,3 @@ const playWhipSound = () => {
 		sound.play();
 	});
 }
-
