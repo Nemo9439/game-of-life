@@ -17,6 +17,8 @@ body {
     align-items: center;
     height: 3vh;
     padding: 6px 14px;
+    font-size: 1em;
+    justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
     border-radius: 6px;
     border: none;
