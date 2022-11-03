@@ -51,20 +51,20 @@ export function main() {
 	function createControlPanel() {
 		let btnReset = document.getElementById("reset");
 		btnReset.onclick = function () {
-			controls.reset();
-			isRotating = false;
-			scene.rotation.y = 0;
-			scene.rotation.x = 0;
-			scene.rotation.z = 0;
+			reset();
 		};
 		let btnTopView = document.getElementById("topView");
 		btnTopView.onclick = function () {
+			scene.rotation.x = 0;
 			controls.reset();
 		};
 		let btnRotate = document.getElementById("rotate");
 		btnRotate.onclick = function () {
-			isRotating = !isRotating;
-			setRotationAnimation()
+			rotate();
+		};
+		let btnRandomize = document.getElementById("randomize");
+		btnRandomize.onclick = function () {
+			randomizeNewCells();
 		};
 	}
 	function setRotationAnimation() {
@@ -74,6 +74,22 @@ export function main() {
 		scene.rotation.y += 0.005;
 	}
 	THREE.ColorManagement.legacyMode = false;
+
+	function reset() {
+		controls.reset();
+		isRotating = false;
+		scene.rotation.y = 0;
+		scene.rotation.x = 0;
+		scene.rotation.z = 0;
+	}
+
+	function rotate() {
+		if(!isRotating) {
+			reset();
+			scene.rotation.x = -20;
+		}
+		isRotating = !isRotating;
+	}
 
 	const raycaster = new THREE.Raycaster();
 	const mouse = new THREE.Vector2();
@@ -85,7 +101,7 @@ export function main() {
 	createLighting();
 
 	const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(0, ROW_SIZE * 2, 0);
+	camera.position.set(0, ROW_SIZE * 3, 0);
 
 
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -132,6 +148,19 @@ export function main() {
 		updateCubes(cells, newCells, cubes);
 		cells = newCells;
 	}, 150)
+
+	function randomizeNewCells(rowSize = ROW_SIZE) {
+		for (let i = 0; i < rowSize; i++) {
+			const row = [];
+			for (let j = 0; j < rowSize; j++) {
+				if(cells[i][j].height > 0){
+					continue
+				}
+				const height = getRandomHeight();
+				cells[i][j] = { height };
+			}
+		}
+	}
 
 	function createLighting() {
 		const ambientLight = new THREE.AmbientLight(SUNLIGHT_COLOR, 0.5); // soft white light
