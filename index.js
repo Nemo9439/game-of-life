@@ -256,30 +256,30 @@ function calculateNewHeight(grid, row, col) {
 function countNeighbors(grid, row, col) {
 	let count = 0;
 
-	if (grid?.[row - 1]?.[col - 1]?.height >= 1) {
+	if (grid?.[(row - 1) % ROW_SIZE]?.[(col - 1) % ROW_SIZE]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row - 1]?.[col]?.height >= 1) {
+	if (grid?.[(row - 1) % ROW_SIZE]?.[col]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row - 1]?.[col + 1]?.height >= 1) {
-		count++;
-	}
-
-	if (grid?.[row]?.[col - 1]?.height >= 1) {
-		count++;
-	}
-	if (grid?.[row]?.[col + 1]?.height >= 1) {
+	if (grid?.[(row - 1) % ROW_SIZE]?.[(col + 1) % ROW_SIZE]?.height >= 1) {
 		count++;
 	}
 
-	if (grid?.[row + 1]?.[col - 1]?.height >= 1) {
+	if (grid?.[row]?.[(col - 1 ) % ROW_SIZE]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row + 1]?.[col]?.height >= 1) {
+	if (grid?.[row]?.[(col + 1) % ROW_SIZE]?.height >= 1) {
 		count++;
 	}
-	if (grid?.[row + 1]?.[col + 1]?.height >= 1) {
+
+	if (grid?.[(row + 1) % ROW_SIZE]?.[(col - 1) % ROW_SIZE]?.height >= 1) {
+		count++;
+	}
+	if (grid?.[(row + 1) % ROW_SIZE]?.[col]?.height >= 1) {
+		count++;
+	}
+	if (grid?.[(row + 1) % ROW_SIZE]?.[(col + 1) % ROW_SIZE]?.height >= 1) {
 		count++;
 	}
 
