@@ -289,11 +289,14 @@ function countNeighbors(grid, row, col) {
 			if(rowIndex === 0 && colIndex === 0) {
 				continue;
 			}
-			if(grid[(row+rowIndex)%ROW_SIZE][(col+colIndex)%ROW_SIZE]) {
+			if(grid[(row+rowIndex + ROW_SIZE)%ROW_SIZE][(col+colIndex+ROW_SIZE)%ROW_SIZE].height > 0) {
 				count++
 			}
 
 	}
 }
+return count;
+}
+
 
 
