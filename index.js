@@ -5,7 +5,7 @@ import {
 
 const ROW_SIZE = 30;
 const SUNLIGHT_COLOR = '#fdfbd3'
-const COLORS = ['azure', 'orange', 'pink', 'tomato', 'whitesmoke', 'salmon', 'skyblue', 'orangered']
+const COLORS = ['azure', 'orange', 'tomato', 'green','whitesmoke', 'salmon', 'skyblue', 'orangered']
 
 function buildSelectNextColor() {
 	let counter = -1;
@@ -42,6 +42,10 @@ function generateGrid(rowSize) {
 	return grid;
 };
 
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+const listener = new THREE.AudioListener();
+const audioLoader = new THREE.AudioLoader();
+
 
 export function main() {
 	let isRotating = false;
@@ -61,6 +65,7 @@ export function main() {
 		let btnRotate = document.getElementById("rotate");
 		btnRotate.onclick = function () {
 			rotate();
+
 		};
 		let btnRandomize = document.getElementById("randomize");
 		btnRandomize.onclick = function () {
@@ -68,7 +73,7 @@ export function main() {
 		};
 	}
 	function setRotationAnimation() {
-		if(!isRotating){
+		if (!isRotating) {
 			return;
 		}
 		scene.rotation.y += 0.005;
@@ -84,7 +89,7 @@ export function main() {
 	}
 
 	function rotate() {
-		if(!isRotating) {
+		if (!isRotating) {
 			reset();
 			scene.rotation.x = -20;
 		}
@@ -97,10 +102,8 @@ export function main() {
 	scene.background = new THREE.Color('black');
 	const group = new THREE.Group();
 	let selectedColor;
-
 	createLighting();
 
-	const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 	camera.position.set(0, ROW_SIZE * 3, 0);
 
 
@@ -113,7 +116,7 @@ export function main() {
 	createControlPanel();
 	let cells = generateGrid(ROW_SIZE);
 	const cubes = new Map();
-
+	camera.add(listener);
 
 
 	for (let y = 0; y < cells.length; y++) {
@@ -121,11 +124,11 @@ export function main() {
 
 			const cell = cells[y][x];
 			const material = new THREE.MeshPhongMaterial({ color: 'yellow' });
-			
+
 			const geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 			const cube = new THREE.Mesh(geometry, material);
 			updateCubeColor(cube, cell.height);
-			cube.position.set(x, (cell.height / 2),  y);
+			cube.position.set(x, (cell.height / 2), y);
 			group.add(cube);
 			const cubeKey = generateCubeKey(x, y);
 			cubes.set(cubeKey, cube);
@@ -153,7 +156,7 @@ export function main() {
 		for (let i = 0; i < rowSize; i++) {
 			const row = [];
 			for (let j = 0; j < rowSize; j++) {
-				if(cells[i][j].height > 0){
+				if (cells[i][j].height > 0) {
 					continue
 				}
 				const height = getRandomHeight();
@@ -165,7 +168,7 @@ export function main() {
 	function createLighting() {
 		const ambientLight = new THREE.AmbientLight(SUNLIGHT_COLOR, 0.5); // soft white light
 		scene.add(ambientLight);
-		group.position.set(-(ROW_SIZE / 2), 0 , -(ROW_SIZE / 2) );
+		group.position.set(-(ROW_SIZE / 2), 0, -(ROW_SIZE / 2));
 		const light = new THREE.PointLight(SUNLIGHT_COLOR, 0.9, 1000);
 		light.position.set(-(ROW_SIZE / 2), ROW_SIZE, -(ROW_SIZE / 2));
 		scene.add(light);
@@ -176,8 +179,11 @@ export function main() {
 
 	function onMouseClick(event) {
 		changeSelectedColor();
+		playBackgroundAudio();
+		playWhipSound();
 	}
 
+	let previousHoveredObject;
 	function onMouseMove(event) {
 		mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 		mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
@@ -185,9 +191,11 @@ export function main() {
 		raycaster.setFromCamera(mouse, camera);
 		const intersects = raycaster.intersectObjects(group.children, false);
 		const object = intersects[0]?.object;
-		if (!object) {
+		if (!object || object === previousHoveredObject) {
 			return;
 		}
+		previousHoveredObject = object;
+		playTapSound();
 		object.material.color.set(selectedColor);
 
 		const { position } = object;
@@ -225,10 +233,12 @@ function updateCubes(oldGrid, grid, cubes) {
 
 
 function updateCube(cell, cube) {
+	
+
 	cube.geometry.dispose();
 	cube.geometry = new THREE.BoxGeometry(0.9, cell.height, 0.9);
 	cube.position.y = cell.height / 2;
-	
+
 	updateCubeColor(cube, cell.height);
 }
 
@@ -284,19 +294,50 @@ function calculateNewHeight(grid, row, col) {
 
 function countNeighbors(grid, row, col) {
 	let count = 0;
-	for(let rowIndex=-1;rowIndex<2;rowIndex++) {
-		for(let colIndex=-1;colIndex<2;colIndex++) {
-			if(rowIndex === 0 && colIndex === 0) {
+	for (let rowIndex = -1; rowIndex < 2; rowIndex++) {
+		for (let colIndex = -1; colIndex < 2; colIndex++) {
+			if (rowIndex === 0 && colIndex === 0) {
 				continue;
 			}
-			if(grid[(row+rowIndex + ROW_SIZE)%ROW_SIZE][(col+colIndex+ROW_SIZE)%ROW_SIZE].height > 0) {
+			if (grid[(row + rowIndex + ROW_SIZE) % ROW_SIZE][(col + colIndex + ROW_SIZE) % ROW_SIZE].height > 0) {
 				count++
 			}
 
+		}
 	}
+	return count;
 }
-return count;
+
+let isBackgroundMusicPlaying = false;
+const playBackgroundAudio = () => {
+	if (isBackgroundMusicPlaying) {
+		return;
+	}
+	isBackgroundMusicPlaying = true;
+	const sound = new THREE.Audio(listener);
+	audioLoader.load('sounds/tron.mp3', function (buffer) {
+		sound.setBuffer(buffer);
+		sound.setLoop(true);
+		sound.play();
+	});
 }
 
 
+const playTapSound = () => {
+	const sound = new THREE.Audio(listener);
+	audioLoader.load('sounds/tap.wav', function (buffer) {
+		sound.setBuffer(buffer);
+		sound.setLoop(false);
+		sound.play();
+	});
+}
+
+const playWhipSound = () => {
+	const sound = new THREE.Audio(listener);
+	audioLoader.load('sounds/whip.wav', function (buffer) {
+		sound.setBuffer(buffer);
+		sound.setLoop(false);
+		sound.play();
+	});
+}
 
